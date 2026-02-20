@@ -4,14 +4,13 @@ use embedded_hal::i2c::Error as I2c_Error;
 use crate::registers::REGISTER_SIZE;
 use crate::{
     registers::{
-        self, BW_RATE_ADDR, DATA_FORMAT_ADDR, DATAX0_ADDR, DEVICE_ID, DEVID_ADDR, POWER_CTL_ADDR,
+        self, DEVID_ADDR, BW_RATE_ADDR, DATA_FORMAT_ADDR, DATAX0_ADDR, ADXL343_ADDR, DEVID_REG_VALUE, POWER_CTL_ADDR,
         accel_configs::{self, Alignment, POWER_CTL} 
     },
     utils::settings::ADXL343Settings,
 };
 use core::fmt::Debug;
 use embedded_hal_mock::eh1::i2c::{Mock};
-
 
 use core::{error::Error, fmt::{Display, Pointer}};
 
@@ -57,18 +56,20 @@ where
     }
 
     /// Ensures that the device responding to the device address 0xE5 has DEVID 0xE5 
-    fn confirm_device(&mut self) -> Result<(), ADXL343Error<I::Error>>{
-        let returned_dev_address = self.read_register(DEVID_ADDR)?;
-        match returned_dev_address {
-            DEVICE_ID => Ok(()),
-            _ => Err(ADXL343Error::DeviceIdMismatch)
-        }
-        
+    pub fn confirm_device(&mut self) -> Result<(), ADXL343Error<I::Error>>{
+
+	let returned_value = self.read_register(DEVID_ADDR)?;
+		match returned_value{
+		    DEVID_REG_VALUE => Ok(()),
+		    _ => Err(ADXL343Error::DeviceIdMismatch)
+		}
+		
 
     }
 
     /// toggles measurement bit to 1 in the POWER_CTL register to begin measurements
-    /// does nothing in the event that measurement mode is already enabled 
+    /// does nothing in the event that measurement mode is already enabled
+    /// 
     pub fn begin_measurements(&mut self) -> Result<(), ADXL343Error<I::Error>>{
         if (!self.settings.in_measurement_mode()){
             self.settings.toggle_measurement_mode();
@@ -95,33 +96,32 @@ where
     /// [x_low, x_high, y_low, y_high, z_low, z_high] (called DATA_0 and DATA_1 in the datasheet)
     pub fn read_full_sample(&mut self) -> Result<[u8; 6], ADXL343Error<I::Error>> {
         let mut read_buff = [0u8; 6];
-        self.i2c.write_read(DEVICE_ID, &[DATAX0_ADDR], &mut read_buff)?;
+        self.i2c.write_read(ADXL343_ADDR, &[DATAX0_ADDR], &mut read_buff)?;
         Ok(read_buff)
     }
 
     
     /// converts accel_data (represented as [lowbits, highbits]) into equivalent i16 representation
     #[inline]
-    fn axis_value_raw(&mut self, accel_data: [u8; 2] ) -> i16{
-        let axis_value = ((accel_data[1] as u16) << REGISTER_SIZE) | accel_data[0] as u16;
+    pub fn axis_value_raw(&mut self, accel_data: [u8; 2] ) -> i16{
+        let mut axis_value = ((accel_data[1] as u16) << REGISTER_SIZE) | accel_data[0] as u16;
         let shift = 16 - self.settings.resolution_to_bits(); 
     
         //change right aligned reading into a left aligned reading
         if self.settings.get_justification() == Alignment::right {
-            axis_value << shift;
+            axis_value = axis_value << 6;
         };
-    
         (axis_value as i16) >> shift
     }
 
     /// converts accel_data into its equivalent f32 representation
     #[inline]
-    fn axis_value(&mut self, accel_data: i16) -> f32{
+    pub fn axis_value(&mut self, accel_data: i16) -> f32{
         (accel_data as f32) * self.settings.g_per_lsb()
     }
 
     /// accel reading [x_axis, y_axis, z_axis]
-    fn read_accel(&mut self) -> Result<[f32; 3], ADXL343Error<I::Error>>{
+    pub fn read_accel(&mut self) -> Result<[f32; 3], ADXL343Error<I::Error>>{
         let binding = self.read_full_sample()?;
         let (axis_samples,_) = binding.as_chunks::<2>();
         let x_raw = self.axis_value_raw(axis_samples[0]);
@@ -137,18 +137,18 @@ where
         )
     }
 
-    fn read_register(&mut self, reg_address: u8) -> Result<u8, ADXL343Error<I::Error>> {
+    pub fn read_register(&mut self, reg_address: u8) -> Result<u8, ADXL343Error<I::Error>> {
         let mut read_buff = [0u8];
-        self.i2c.write_read(DEVICE_ID, &[reg_address], &mut read_buff)?;
+        self.i2c.write_read(ADXL343_ADDR, &[reg_address], &mut read_buff)?;
         Ok(read_buff[0])
     }
 
     fn write_to_register(&mut self, reg_address: u8, value: u8) -> Result<(), ADXL343Error<I::Error>> {
-        self.i2c.write(DEVICE_ID, &mut [reg_address, value])?;
+        self.i2c.write(ADXL343_ADDR, &mut [reg_address, value])?;
         Ok(())
     }
     
-    fn destroy(mut self) -> (I, ADXL343Settings) {
+    pub fn destroy(mut self) -> (I, ADXL343Settings) {
         self.turn_off_measurements();
         (self.i2c, self.settings)
     }

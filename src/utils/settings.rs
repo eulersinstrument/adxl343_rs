@@ -7,7 +7,7 @@ use crate::registers::{
 };
 
 
-#[derive(Default, Clone, Copy, Setters)]
+#[derive(Default, Clone, Copy)]
 pub struct ADXL343Settings{
     odr: OutputDataRate ,
     range: AccelRange,
@@ -81,7 +81,11 @@ impl ADXL343Settings {
             (FullRes::_10bit_res, AccelRange::_16g) => 32
         }
     }
-
+	
+    pub fn set_justification(&mut self, justification: Alignment)
+    {
+	self.justification = justification; 
+    }
     pub fn get_justification(&self) -> Alignment{
         self.justification
     }

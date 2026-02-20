@@ -4,8 +4,7 @@ use modular_bitfield::{bitfield, prelude::B8};
 
 
 // register addresses (name in data sheet = address (hexadecimal))
-
-pub const DEVID_ADDR: u8          = 0x00;
+pub const DEVID_ADDR: u8 	  = 0x00;
 pub const THRESH_TAP_ADDR: u8     = 0x1D;
 pub const OFSX_ADDR: u8           = 0x1E;
 pub const OFSY_ADDR: u8           = 0x1F;
@@ -37,30 +36,11 @@ pub const FIFO_CTL_ADDR: u8       = 0x38;
 pub const FIFO_STATUS_ADDR: u8    = 0x39;
 
 pub const REGISTER_SIZE: u8 = 8;
-pub const DEVICE_ID: u8 = 0xE5;
-
+pub const ADXL343_ADDR: u8 = 0x53; //i2c slave device address when using a qwiic connector
+pub const DEVID_REG_VALUE: u8 = 0xE5;
 //registers for data rate, power saving modes, justification
 pub mod accel_configs; 
 
 
-//device ID register (should read 0b1100101)
-#[bitfield]
-pub struct DEVID{
-    device_id: B8
-}
-
-impl DEVID {
-
-    pub fn address() -> u8{
-        DEVID_ADDR
-    }
-}
-
-
-impl Default for DEVID {
-    fn default() -> Self {
-        Self::new().with_device_id(0xE5)
-    }
-}
 
 

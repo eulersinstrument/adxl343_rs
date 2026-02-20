@@ -188,7 +188,7 @@ pub enum AccelRange{
 /// - `#[default] left = 0b0` - most significant bit located at the largest address (data(0:j) 0, 0, ..., 0 )
 /// - `right = 0b1` -  least significant bit located at the smallest address (0, 0, ..., 0, data(0:j))
 /// ```
-#[derive(Default, Specifier, Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Debug, Specifier, Clone, Copy, PartialEq, Eq)]
 pub enum Alignment {
     #[default]
     right = 0b0,
