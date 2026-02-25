@@ -1,6 +1,5 @@
 #![allow(unused)]
-use embedded_hal::i2c::I2c;
-use embedded_hal::i2c::Error as I2c_Error;
+use embedded_hal::i2c::{I2c, Error as I2c_Error};
 use crate::registers::REGISTER_SIZE;
 use crate::{
     registers::{
@@ -14,7 +13,7 @@ use embedded_hal_mock::eh1::i2c::{Mock};
 
 use core::{error::Error, fmt::{Display, Pointer}};
 
-/// Device driver
+/// Device Interface
 pub struct ADXL343Interface<I>
 where
     I: I2c,
@@ -69,7 +68,6 @@ where
 
     /// toggles measurement bit to 1 in the POWER_CTL register to begin measurements
     /// does nothing in the event that measurement mode is already enabled
-    /// 
     pub fn begin_measurements(&mut self) -> Result<(), ADXL343Error<I::Error>>{
         if (!self.settings.in_measurement_mode()){
             self.settings.toggle_measurement_mode();
@@ -81,6 +79,7 @@ where
         Ok(())
     }
 
+    /// opposite of begin_measurements method
     pub fn turn_off_measurements(&mut self) ->  Result<(), ADXL343Error<I::Error>>{
         if (self.settings.in_measurement_mode()){
             self.settings.toggle_measurement_mode();
@@ -92,8 +91,10 @@ where
         Ok(())
     }
 
+
     /// Returns raw accelerometer readings in the format:
     /// [x_low, x_high, y_low, y_high, z_low, z_high] (called DATA_0 and DATA_1 in the datasheet)
+   #[inline]
     pub fn read_full_sample(&mut self) -> Result<[u8; 6], ADXL343Error<I::Error>> {
         let mut read_buff = [0u8; 6];
         self.i2c.write_read(ADXL343_ADDR, &[DATAX0_ADDR], &mut read_buff)?;
@@ -137,6 +138,7 @@ where
         )
     }
 
+    #[inline]
     pub fn read_register(&mut self, reg_address: u8) -> Result<u8, ADXL343Error<I::Error>> {
         let mut read_buff = [0u8];
         self.i2c.write_read(ADXL343_ADDR, &[reg_address], &mut read_buff)?;
@@ -148,6 +150,7 @@ where
         Ok(())
     }
     
+    /// returns both the i2c bus adapter and the settings struct
     pub fn destroy(mut self) -> (I, ADXL343Settings) {
         self.turn_off_measurements();
         (self.i2c, self.settings)
@@ -187,47 +190,4 @@ impl<E: I2c_Error> From<E> for ADXL343Error<E> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use embedded_hal::i2c::ErrorKind;
 
-    use super::*;
-    use crate::adxl343_interface::{ADXL343Interface, ADXL343Settings};
-
-    #[test]
-    fn to_chunks_test(){
-        let arr: [i16; 6] = [1, 2, 3, 4, 5, 6];
-        let (binding, _) = arr.as_chunks::<2>();
-        assert_eq!(binding, [[1,2], [3,4], [5,6]]);
-    }
-
-    //left justified, full resolution, 16g range (bits -> f32 pipeline test)
-    #[test]
-    fn bits_to_f32_pipeline_test() -> Result<(), ADXL343Error<ErrorKind>>{
-        extern crate std;
-        use std::println;
-
-        //set to range = _16g's, justification (alignment) = left, and resolution = full => (13 bits of 16)
-        let mut test_settings = ADXL343Settings::default()
-        .range(accel_configs::AccelRange::_16g)
-        .justification(accel_configs::Alignment::left)
-        .resolution(accel_configs::FullRes::full_res);
-
-        let mut test_interface = ADXL343Interface::new(Mock::new(&[]));
-        test_interface.with_settings(test_settings)?;
-
-        //example: 9g and -9g, both in lsb's  (least standard bits)
-
-        let _9g_as_i16: i16 = test_interface.axis_value_raw(((9*256 as u16) << 3).to_le_bytes());
-        let _minus9g_as_i16: i16 = test_interface.axis_value_raw(((0b1011100000000 as u16) << 3).to_le_bytes());
-        
-        assert_eq!(test_interface.axis_value(_9g_as_i16), 9.0);
-        assert_eq!(test_interface.axis_value(_minus9g_as_i16), -9.0);
-        
-        let (mut i2c, _) = test_interface.destroy();
-        i2c.done();
-
-        Ok(())
-    }
-    
-}

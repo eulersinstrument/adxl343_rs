@@ -227,7 +227,7 @@ mod tests {
         assert_eq!(POWER_CTL::default().into_bytes()[0], 0b00000000);
         assert_eq!(DATA_FORMAT::default().into_bytes()[0], 0b00000000);
     }
-
+    
     #[test]
     fn bw_rate_configs(){
         assert_eq!(

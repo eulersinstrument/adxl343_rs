@@ -19,16 +19,7 @@ pub struct ADXL343Settings{
 
 impl ADXL343Settings {
 
-    /// Returns a u8 representation of the DATA_FORMAT register based on the fields contained in Self
-    /// 
-    /// # Arguments
-    /// 
-    /// - `&self` (`undefined`) - Describe this parameter.
-    /// 
-    /// # Returns
-    /// 
-    /// - `u8` - u8 representation of the DATA_FORMAT register (in the ADXL343).
-    /// ```
+    ///returns the configured state of the DATA_FORMAT reg IN STRUCT
     pub fn DATA_FORMAT_reg_value(&self) -> u8 {
         DATA_FORMAT::new()
             .with_range(self.range)
@@ -36,22 +27,14 @@ impl ADXL343Settings {
             .with_full_res(self.resolution).into_bytes()[0]
     }
 
-    /// Returns a u8 representation of the BW_RATE register based on the fields contained in Self
-    /// 
-    /// # Arguments
-    /// 
-    /// - `&self` (`undefined`) - Describe this parameter.
-    /// 
-    /// # Returns
-    /// 
-    /// - `u8` - u8 representation of the BW_RATE register (in the ADXL343).
-    /// ```
+    ///returns the configured state of the BW_RATE reg IN STRUCT 
     pub fn BW_RATE_reg_value(&self) -> u8{
         BW_RATE::new()
         .with_low_power(self.low_power_mode as u8)
         .with_odr(self.odr).into_bytes()[0]
     }
-
+    
+    ///returns the number of bits used to represent axis reading
     pub fn resolution_to_bits(&self) -> u8 {
         match (self.resolution, self.range) {
             (FullRes::_10bit_res, _) => 10,
@@ -62,6 +45,7 @@ impl ADXL343Settings {
         }
     }
 
+   
     pub fn g_per_lsb(&self) -> f32 {
         match (self.resolution, self.range) {
             (FullRes::full_res, _) => 1.0/256.0,
@@ -89,7 +73,15 @@ impl ADXL343Settings {
     pub fn get_justification(&self) -> Alignment{
         self.justification
     }
-
+   
+    pub fn set_odr(&mut self, odr: OutputDataRate)
+    {
+	self.odr = odr; 
+    }
+    
+    pub fn get_odr(&self) -> OutputDataRate{
+        self.odr
+    }
 
     pub fn in_measurement_mode(&self) -> bool {
         self.measurement_mode
@@ -97,6 +89,10 @@ impl ADXL343Settings {
 
     pub fn toggle_measurement_mode(&mut self){
         self.measurement_mode ^= true;
+    }
+    
+    pub fn set_range(&mut self, range: AccelRange){
+	self.range = range;
     }
 
 }
