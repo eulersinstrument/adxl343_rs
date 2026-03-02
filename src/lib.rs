@@ -66,10 +66,14 @@
 //! let accel_data_g: [f32; 3] = sensor.read_accel()?; //obtain accelerometer reading in g's
 //! ```
 //! ### Destroy and Change Settings
-//! 
 //! ```
 //! //turns off measurement mode
 //! let (i2c, settings) = sensor.destroy();
+//! ```
+//! 
+//! ```text
+
+//! 
 //! 
 //! // make changes to settings or create a new ADXL343Settings struct and reinitialize
 //! # }
