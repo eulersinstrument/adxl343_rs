@@ -5,6 +5,7 @@ edition = "2024"
 description = "Interface to the adxl343 accelerometer using the embedded-hal i2c trait system"
 license = "MIT"
 repository = "https://github.com/eulersinstrument/adxl343-i2c-generic.git"
+readme = "README.md"
 
 [lib]
 doctest = false
