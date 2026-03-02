@@ -3,7 +3,7 @@
 version = 4
 
 [[package]]
-name = "adxl343"
+name = "adxl343-i2c-generic"
 version = "0.1.0"
 dependencies = [
  "derive_setters",
@@ -12,6 +12,7 @@ dependencies = [
  "linux-embedded-hal",
  "lsm6ds3tr",
  "modular-bitfield",
+ "simple-mermaid",
 ]
 
 [[package]]
@@ -472,6 +473,12 @@ name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
+
+[[package]]
+name = "simple-mermaid"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "589144a964b4b30fe3a83b4bb1a09e2475aac194ec832a046a23e75bddf9eb29"
 
 [[package]]
 name = "spidev"

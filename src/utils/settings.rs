@@ -45,7 +45,7 @@ impl ADXL343Settings {
         }
     }
 
-   
+    /// conversion from g's to lsb's (least standard bits)
     pub fn g_per_lsb(&self) -> f32 {
         match (self.resolution, self.range) {
             (FullRes::full_res, _) => 1.0/256.0,

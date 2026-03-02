@@ -1,15 +1,13 @@
 use modular_bitfield::{bitfield, prelude::{B1, B2, B3, B4, B5}, Specifier};
 use super::{BW_RATE_ADDR, FIFO_CTL_ADDR, DATA_FORMAT_ADDR, REGISTER_SIZE};
 
-/// Configures both the ODR and power consumption settings
+/// Bit field for the BW_RATE register. Configures both the ODR and power consumption settings.
 /// 
 /// # Fields
 /// 
 /// - `rate` (`OutputDataRate`) - output data rate (default value 0xA)
 /// - `low_power` (`B1`) - 0 selects normal ops and 1 selects reduced power ops (default value 0b0)
 /// - `#[skip] __` (`B3`) - non-functional and must remain equal to 0
-/// ```
-
 #[derive(Clone, Copy)]
 #[bitfield(bits = 8)]
 pub struct BW_RATE{
@@ -31,6 +29,25 @@ impl Default for BW_RATE {
     }
 }
 
+/// 
+/// # Variants
+/// 
+/// - `Hz3200 = 0b1111` 
+/// - `Hz1600 = 0b1110`
+/// - `Hz800 = 0b1101` 
+/// - `Hz400 = 0b1100` 
+/// - `Hz200 = 0b1011` 
+/// - `#[default] Hz100 = 0b1010`
+/// - `Hz50 = 0b1001` 
+/// - `Hz25 = 0b1000` 
+/// - `Hz12_5 = 0b0111` 
+/// - `Hz6_25 = 0b0110` 
+/// - `Hz3_13 = 0b0101` 
+/// - `Hz1_56 = 0b0100` 
+/// - `Hz0_78 = 0b0011` 
+/// - `Hz0_39 = 0b0010` 
+/// - `Hz0_20 = 0b0001` 
+/// - `Hz0_10 = 0b0000` 
 #[derive(Default, Specifier, Clone, Copy)]
 pub enum OutputDataRate {
     Hz3200 = 0b1111,
@@ -52,17 +69,17 @@ pub enum OutputDataRate {
     Hz0_10 = 0b0000,
 }
 
-/// Configure whether the device will start measuring or not
+/// Configure whether the device will start measuring or not.
 /// 
 /// # Fields
 /// 
-/// - `#[skip] wakeup` (`SLEEP_MODE_ODR`) - 
-/// - `#[skip] sleep` (`B1`) - 
-/// - `measure` (`B1`) - default value of 0 corresponding to non measuring state
-/// - `#[skip] autosleep` (`B1`) - Describe this field.
-/// - `#[skip] link` (`B1`) - Describe this field.
-/// - `#[skip] __` (`B2`) - Describe this field
-/// ```
+/// - `#[skip] wakeup` (`SLEEP_MODE_ODR`)  
+/// - `#[skip] sleep` (`B1`)  
+/// - `measure` (`B1`) 
+/// - `#[skip] autosleep` (`B1`) 
+/// - `#[skip] link` (`B1`) 
+/// - `#[skip] __` (`B2`) 
+
 #[bitfield(bits = 8)]
 pub struct POWER_CTL{
     #[skip]
@@ -109,7 +126,7 @@ pub enum SLEEP_MODE_ODR{
 /// - `#[skip] samples` (`B1`) - controls the mapping of the trigger event to the interrupt line;
 /// 0 -> int line 1, 1 -> int line 2
 /// - `fifo_mode` (`FIFO_MODE`) - default, FIFO, STREAM, Trigger
-/// ```
+
 #[bitfield(bits = 8)]
 pub struct FIFO_CTL{
     #[skip]
@@ -132,6 +149,12 @@ impl Default for FIFO_CTL {
     }
 }
 
+/// 
+/// # Variants
+/// 
+/// - `#[default] BYPASS = 0b00` 
+/// - `FIFO = 0b01` 
+/// - `STREAM = 0b10`
 #[derive(Default, Specifier)]
 #[bits = 2]
 pub enum FIFOMode{
@@ -141,6 +164,17 @@ pub enum FIFOMode{
     STREAM = 0b10,
 }
 
+/// Bit field for the DATA_Format register. Configures the range, justification, and resolution
+/// 
+/// # Fields
+/// 
+/// - `range` (`AccelRange`) 
+/// - `justisfy` (`Alignment`) 
+/// - `full_res` (`FullRes`)
+/// - `#[skip] __` (`B1`) 
+/// - `#[skip] int_invert` (`B1`) 
+/// - `#[skip] spi_mode` (`B1`) 
+/// - `#[skip] self_test` (`B1`)
 #[bitfield(bits = 8)]
 pub struct DATA_FORMAT{
     pub range: AccelRange,
@@ -173,6 +207,12 @@ impl Default for DATA_FORMAT {
     }
 }
 
+/// # Variants
+/// 
+/// - `#[default] _2g = 0b00` 
+/// - `_4g = 0b01` 
+/// - `_8g = 0b10` 
+/// - `_16g = 0b11`
 #[derive(Default, Specifier, Clone, Copy, PartialEq, Eq)]
 pub enum AccelRange{
     #[default]
@@ -182,12 +222,10 @@ pub enum AccelRange{
     _16g = 0b11
 }
 
-
+/// # Variants
 /// 
-/// 
-/// - `#[default] left = 0b0` - most significant bit located at the largest address (data(0:j) 0, 0, ..., 0 )
-/// - `right = 0b1` -  least significant bit located at the smallest address (0, 0, ..., 0, data(0:j))
-/// ```
+/// - `#[default] right = 0b0`
+/// - `left = 0b1` 
 #[derive(Default, Debug, Specifier, Clone, Copy, PartialEq, Eq)]
 pub enum Alignment {
     #[default]
@@ -195,18 +233,10 @@ pub enum Alignment {
     left = 0b1
 }
 
-
-/// Sets the resolution for the data (ie how many bits are used to store the accelerometer readings).
-/// Determines how many bits are part of the accelerometer reading in the data registers
-/// 
 /// # Variants
 /// 
-/// - `#[default] _10bit_res = 0b0` - 10 bits are used to store the readings from an axis on the
-/// accelerometer
-/// - `full_res = 0b1` - number of bits corresponds to the range 
-/// 
-/// (range (g's): full resolution (bits)) -> (_2g: 10), (_4g, 11), (_8g, 12), (_16g, 13)
-/// ```
+/// - `#[default] _10bit_res = 0b0` - Describe this variant.
+/// - `full_res = 0b1` - Describe this variant.
 #[derive(Default, Specifier, Clone, Copy)]
 pub enum FullRes {
     #[default]

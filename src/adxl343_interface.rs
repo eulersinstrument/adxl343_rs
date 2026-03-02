@@ -9,7 +9,6 @@ use crate::{
     utils::settings::ADXL343Settings,
 };
 use core::fmt::Debug;
-use embedded_hal_mock::eh1::i2c::{Mock};
 
 use core::{error::Error, fmt::{Display, Pointer}};
 

@@ -1,4 +1,9 @@
 #![allow(unused)]
+#![cfg(all(
+    target_arch = "aarch64",
+    target_os = "linux",
+    target_env = "gnu"
+))]
 mod helper;
 use linux_embedded_hal::{I2cdev, I2CError};
 use adxl343::{
@@ -14,7 +19,7 @@ type SensorError = ADXL343Error<I2CError>;
 #[test]
 fn confim_device() -> Result<(), SensorError>
 {
-	let mut sensor  = helper::setup_i2c_interface_with_adxl343()?;
+	let mut sensor  = setup_i2c_interface_with_adxl343()?;
    	sensor.confirm_device()?;
     	Ok(())
 }
@@ -23,7 +28,7 @@ fn confim_device() -> Result<(), SensorError>
 #[test]
 fn left_right_justification_invariance() -> Result<(), SensorError>
 {
-	let mut sensor = helper::setup_i2c_interface_with_adxl343()?;
+	let mut sensor = setup_i2c_interface_with_adxl343()?;
 	let mut sensor_right_justified = create_sensor_with_justification(
 		sensor,
 		Alignment::right
@@ -50,7 +55,7 @@ fn sampling_rate_limit() -> Result<(), SensorError>
 	let instant = Instant::now();
 	let mut delta_t_between_measurements: [u128; 3] =  [0x0; 3];	
 
-	let mut sensor = helper::setup_i2c_interface_with_adxl343()?;
+	let mut sensor = setup_i2c_interface_with_adxl343()?;
 	let mut sensor_fast_odr = create_sensor_with_sample_rate(
 		sensor,
 		OutputDataRate::Hz3200
@@ -147,6 +152,16 @@ fn read_axis(sensor: &mut SensorInterface, axis: Axis)
 	let axis_reading: i16 = sensor.axis_value_raw(axis_reading);
 	Ok(sensor.axis_value(axis_reading))
 }
+
+pub fn setup_i2c_interface_with_adxl343() 
+-> Result<ADXL343Interface<I2cdev>, I2CError>
+{
+    	//initializes an i2c device through the embedded linux hal lib
+    	let i2c = I2cdev::new("/dev/i2c-1")?;
+	let mut sensor = ADXL343Interface::new(i2c);
+	Ok(sensor)
+}
+
 
 //helper enum to specify which axis to read
 enum Axis{
